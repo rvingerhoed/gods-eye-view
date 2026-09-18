@@ -37,6 +37,7 @@
     "format:check": "node scripts/format.mjs --check",
     "dev": "vite",
     "dev:secure": "./scripts/dev-secure.sh",
+    "dev:jarvis": "node scripts/dev-jarvis.mjs",
     "opensky:import": "./scripts/opensky-import-client.sh",
     "build": "vite build",
     "preview": "vite preview",

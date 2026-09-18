@@ -200,6 +200,7 @@ export class IntelHUD {
       <div class="hud-corner hud-top-right">
         <div class="hud-content" style="text-align:right">
           <div class="hud-rec"><span id="hud-rec-dot">●</span> REC  <span id="hud-timestamp">2026-01-01 00:00:00Z</span></div>
+          <div class="hud-orbital" id="hud-local-time">2026-01-01 00:00:00 NL</div>
           <div class="hud-orbital">ORB: ${this._orbitNum}  PASS: DESC-${this._passNum}</div>
         </div>
         <div class="hud-bracket">┐</div>
@@ -250,6 +251,8 @@ export class IntelHUD {
     this._timestampInterval = setInterval(() => {
       const el = document.getElementById('hud-timestamp');
       if (el) el.textContent = this._formatUTC();
+      const localEl = document.getElementById('hud-local-time');
+      if (localEl) localEl.textContent = this._formatLocalNL();
     }, 1000);
 
     // REC blink — every 800ms
@@ -286,6 +289,28 @@ export class IntelHUD {
     const mi = String(now.getUTCMinutes()).padStart(2, '0');
     const s = String(now.getUTCSeconds()).padStart(2, '0');
     return `${y}-${mo}-${d} ${h}:${mi}:${s}Z`;
+  }
+
+  /**
+   * Format the current wall-clock time in Europe/Amsterdam local time, shown
+   * directly under the UTC/Zulu line as a secondary reference. Uses the IANA
+   * zone via Intl so CET/CEST daylight-saving transitions resolve correctly
+   * without manual offset math.
+   * @returns {string} Timestamp in `YYYY-MM-DD HH:MM:SS NL` format.
+   */
+  _formatLocalNL() {
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Europe/Amsterdam',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    }).formatToParts(new Date());
+    const get = (type) => parts.find((p) => p.type === type)?.value ?? '--';
+    return `${get('year')}-${get('month')}-${get('day')} ${get('hour')}:${get('minute')}:${get('second')} NL`;
   }
 
   /**
