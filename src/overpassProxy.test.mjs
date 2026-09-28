@@ -189,6 +189,37 @@ test('the first mirror to answer wins, and the rest are left alone', async () =>
   assert.deepEqual(tried, [ENDPOINTS[0]]);
 });
 
+test('a silent mirror is hedged: the next one starts without waiting out the timeout', async () => {
+  // Field test 2026-09-28: kumi and private.coffee stayed silent while another
+  // mirror answered — strictly sequential rotation stacked two 22 s timeouts.
+  const tried = [];
+  const aborted = [];
+  const started = Date.now();
+  const payload = await fetchOverpassPayload('data=x', 1e6, {
+    endpoints: ENDPOINTS,
+    hedgeMs: 20,
+    timeoutMs: 60_000,
+    fetchImpl: (url, { signal }) => {
+      tried.push(url);
+      if (url === ENDPOINTS[0]) {
+        // Never answers; only the winner's abort ends it.
+        return new Promise((_, reject) => signal.addEventListener('abort', () => {
+          aborted.push(url);
+          reject(new Error('aborted'));
+        }));
+      }
+      return Promise.resolve({ status: 200, headers: { get: () => 'application/json' } });
+    },
+    readBody: async () => DATA.body,
+    simplify: (body) => body,
+  });
+
+  assert.equal(payload.endpoint, ENDPOINTS[1]);
+  assert.deepEqual(tried, ENDPOINTS.slice(0, 2), 'the third mirror is never needed');
+  assert.deepEqual(aborted, [ENDPOINTS[0]], 'the silent loser is aborted');
+  assert.ok(Date.now() - started < 5_000, 'no per-mirror timeout was waited out');
+});
+
 test('a refusal every mirror agrees on is reported, not swallowed', async () => {
   // A genuinely bad query must still say what upstream said — but only after
   // every mirror has had its chance to answer it.
@@ -297,7 +328,7 @@ test('coalesced outage callers both receive last-good data, never a cached refus
         assert.equal(response.body, DATA.body);
         assert.equal(response.headers['X-Overpass-Cache'], 'STALE');
       }
-      assert.equal(fetches, 4, 'one shared, bounded mirror sequence');
+      assert.equal(fetches, 5, 'one shared, bounded mirror sequence (one fetch per upstream)');
       assert.deepEqual(JSON.parse(await readFile(file, 'utf8')), stale);
     } finally {
       release.resolve();

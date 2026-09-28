@@ -3,6 +3,7 @@ import {
   OVERPASS_UPSTREAMS,
   OVERPASS_USER_AGENT,
   OVERPASS_TIMEOUT_MS,
+  OVERPASS_HEDGE_MS,
 } from './constants.js';
 import { readResponseTextCapped } from '../common/http.js';
 import { simplifyOverpassPayloadBody } from './geometry.js';
@@ -61,15 +62,23 @@ function overpassPayloadIsData(payload) {
 }
 
 /**
- * Try each mirror once, retaining response-size and per-mirror timeout caps.
+ * Ask each mirror once, retaining response-size and per-mirror timeout caps.
+ *
+ * Mirrors are started in order but hedged: the next one starts after
+ * `hedgeMs`, or immediately when the current one refuses/fails. The first
+ * real answer wins and aborts the rest. Strictly sequential rotation used to
+ * stack the per-mirror timeouts (two silent mirrors = ~44 s of dead wait
+ * before a healthy one was even asked — field test 2026-09-28).
+ *
  * Refusals and body-level failures rotate; total failure returns the last
- * rate-limit payload, otherwise the first refusal, or throws a network error.
+ * rate-limit payload, otherwise the first refusal (in mirror order), or throws
+ * the last network error.
  * @param {string} body URL-encoded Overpass QL query body.
  * @param {number} [maxResponseBytes] Endpoint-specific response cap.
  * @param {object} [options] Server-only endpoint and I/O overrides for tests.
  * @returns {Promise<{status:number,body:string,contentType:string,endpoint:string,rateLimited:boolean}>}
  */
-async function fetchOverpassPayload(
+function fetchOverpassPayload(
   body,
   maxResponseBytes = OVERPASS_MAX_RESPONSE_BYTES,
   {
@@ -77,15 +86,26 @@ async function fetchOverpassPayload(
     fetchImpl = fetch,
     readBody = readResponseTextCapped,
     simplify = simplifyOverpassPayloadBody,
+    hedgeMs = OVERPASS_HEDGE_MS,
+    timeoutMs = OVERPASS_TIMEOUT_MS,
   } = {},
 ) {
   let lastError = null;
   let lastRateLimitPayload = null;
-  let lastRefusalPayload = null;
+  /** @type {Array<object|undefined>} refusal payloads by mirror index. */
+  const refusals = [];
+  const controllers = [];
+  let next = 0;
+  let pending = 0;
+  let settled = false;
+  let hedgeTimer = null;
 
-  for (const endpoint of endpoints) {
+  /** One mirror; resolves to a data payload, or null when it did not answer. */
+  async function attempt(index) {
+    const endpoint = endpoints[index];
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), OVERPASS_TIMEOUT_MS);
+    controllers.push(controller);
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
       const upstream = await fetchImpl(endpoint, {
@@ -116,13 +136,13 @@ async function fetchOverpassPayload(
 
       if (rateLimited) {
         lastRateLimitPayload = payload;
-        continue;
+        return null;
       }
       // A 200 body carrying a runtime error / timeout is a transient upstream
       // failure — skip to the next mirror rather than returning or caching it.
       if (runtimeError) {
         lastError = new Error(`Overpass runtime error (${endpoint})`);
-        continue;
+        return null;
       }
       // Anything but 2xx is this mirror declining, not an answer. Only 5xx used
       // to rotate, so a 4xx ended the fan-out and was returned — and cached —
@@ -132,11 +152,11 @@ async function fetchOverpassPayload(
       // refusal is kept so a genuinely bad query still reports what upstream
       // said, but only after every mirror has had the chance to answer it.
       if (status < 200 || status >= 300) {
-        if (!lastRefusalPayload) lastRefusalPayload = payload;
+        refusals[index] = payload;
         lastError = new Error(
           `Overpass upstream returned ${status} (${endpoint})`,
         );
-        continue;
+        return null;
       }
 
       // Success: decimate giant boundary geometry before it reaches the cache,
@@ -144,15 +164,56 @@ async function fetchOverpassPayload(
       payload.body = simplify(payload.body);
       return payload;
     } catch (error) {
-      lastError = error;
+      // A loser aborted by the winner is not a failure worth reporting.
+      if (!settled) lastError = error;
+      return null;
     } finally {
       clearTimeout(timeoutId);
     }
   }
 
-  if (lastRateLimitPayload) return lastRateLimitPayload;
-  if (lastRefusalPayload) return lastRefusalPayload;
-  throw lastError || new Error('All Overpass upstreams failed');
+  return new Promise((resolve, reject) => {
+    const finish = (settle) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(hedgeTimer);
+      for (const controller of controllers) controller.abort();
+      settle();
+    };
+
+    const launchNext = () => {
+      clearTimeout(hedgeTimer);
+      if (settled || next >= endpoints.length) return;
+      const index = next++;
+      pending += 1;
+      attempt(index).then((payload) => {
+        pending -= 1;
+        if (settled) return;
+        if (payload) {
+          finish(() => resolve(payload));
+          return;
+        }
+        if (next < endpoints.length) {
+          launchNext(); // this mirror declined — don't wait out the hedge
+        } else if (pending === 0) {
+          finish(() => {
+            if (lastRateLimitPayload) resolve(lastRateLimitPayload);
+            else if (refusals.some(Boolean)) resolve(refusals.find(Boolean));
+            else reject(lastError || new Error('All Overpass upstreams failed'));
+          });
+        }
+      });
+      if (next < endpoints.length) {
+        hedgeTimer = setTimeout(launchNext, hedgeMs);
+      }
+    };
+
+    if (endpoints.length === 0) {
+      reject(new Error('All Overpass upstreams failed'));
+      return;
+    }
+    launchNext();
+  });
 }
 
 export { overpassPayloadIsData, fetchOverpassPayload };

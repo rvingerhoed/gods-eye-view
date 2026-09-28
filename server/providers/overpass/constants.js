@@ -16,9 +16,17 @@ import path from 'node:path';
 const OVERPASS_USER_AGENT =
   'gods-eye-view/0.1 (+https://github.com/bilawalsidhu/gods-eye-view)';
 
-/** Ordered list of Overpass API mirrors; tried sequentially on failure/rate-limit. */
+/**
+ * Ordered list of Overpass API mirrors. Started in order, each one
+ * OVERPASS_HEDGE_MS after the previous (or immediately when the previous
+ * refuses) — see fetchOverpassPayload.
+ */
 const OVERPASS_UPSTREAMS = [
   'https://overpass-api.de/api/interpreter',
+  // VK/mail.ru public instance — added 2026-09-28 when it was the only mirror
+  // answering this IP (overpass-api.de/lz4 406 in ms, kumi and private.coffee
+  // silent past 40 s). Slow (~28 s cold) but it answers.
+  'https://maps.mail.ru/osm/tools/overpass/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
   'https://lz4.overpass-api.de/api/interpreter',
   // Community full-planet instance (privateforge nonprofit) — added 2026-07-30
@@ -34,12 +42,15 @@ const OVERPASS_UPSTREAMS = [
  * every viewport revisit and left nothing to serve when the mirrors 502
  * (field-test 2026-07-17: all three mirrors down during US morning peak =
  * "traffic takes forever to load"). 24 h in memory; the disk layer below
- * keeps 7 days and also survives dev-server restarts.
+ * keeps 30 days and also survives dev-server restarts.
  */
 const OVERPASS_CACHE_MS = 86_400_000;
 
-/** Disk-cache TTL for Overpass responses (ms) — 7 days. */
-const OVERPASS_DISK_TTL_MS = 7 * 86_400_000;
+/**
+ * Disk-cache TTL for Overpass responses (ms) — 30 days (was 7). Road geometry
+ * barely changes; live congestion comes from TomTom, not from this cache.
+ */
+const OVERPASS_DISK_TTL_MS = 30 * 86_400_000;
 
 /**
  * Disk-cache TTL for BOUNDARY-class queries (is_in / admin-relation pivots) — 30
@@ -53,8 +64,19 @@ const OVERPASS_BOUNDARY_DISK_TTL_MS = 30 * 86_400_000;
 /** Disk-cache directory for Overpass responses. */
 const OVERPASS_DISK_DIR = path.join(process.cwd(), '.gev-cache', 'overpass');
 
-/** Per-upstream fetch timeout (ms). */
-const OVERPASS_TIMEOUT_MS = 22000;
+/**
+ * Per-upstream fetch timeout (ms). Mirrors run staggered rather than strictly
+ * one after another, so this no longer adds up per mirror; 35 s leaves room
+ * for the slow-but-working mail.ru instance (~28 s cold).
+ */
+const OVERPASS_TIMEOUT_MS = 35000;
+
+/**
+ * Hedge delay (ms): how long a mirror gets before the next one is started in
+ * parallel. A refusal starts the next mirror immediately; the first real
+ * answer wins and aborts the rest.
+ */
+const OVERPASS_HEDGE_MS = 2000;
 
 /** Max entries in the Overpass response cache (LRU-like, oldest evicted first). */
 const OVERPASS_CACHE_MAX_ENTRIES = 120;
@@ -145,4 +167,5 @@ export {
   OVERPASS_UPSTREAMS,
   OVERPASS_USER_AGENT,
   OVERPASS_TIMEOUT_MS,
+  OVERPASS_HEDGE_MS,
 };
