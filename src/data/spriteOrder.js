@@ -6,6 +6,8 @@ export const SPRITE_LAYER_ORDER = Object.freeze([
   'transit',
   'transit-motion',
   'directions',
+  'rail',
+  'rail-route',
   'ais',
   'military',
   'flights',

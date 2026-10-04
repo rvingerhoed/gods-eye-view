@@ -1,0 +1,606 @@
+{
+ "payload": [
+  {
+   "EVACode": "8400058",
+   "UICCode": "8400058",
+   "UICCdCode": "118400058",
+   "cdCode": 58,
+   "code": "ASD",
+   "ingangsDatum": "2025-06-03",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.3788871765137,
+   "lng": 4.90027761459351,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Amsterdam Centraal",
+    "middel": "Amsterdam C.",
+    "kort": "Amsterdm C"
+   },
+   "synoniemen": [
+    "Amsterdam CS",
+    "Amsterdam"
+   ],
+   "stationType": "MEGA_STATION"
+  },
+  {
+   "EVACode": "8400059",
+   "UICCode": "8400059",
+   "UICCdCode": "118400059",
+   "cdCode": 59,
+   "code": "ASS",
+   "ingangsDatum": "2015-03-18",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.3888893127441,
+   "lng": 4.83777761459351,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Amsterdam Sloterdijk",
+    "middel": "Sloterdijk",
+    "kort": "Sloterdijk"
+   },
+   "synoniemen": [],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400113",
+   "UICCode": "8400113",
+   "UICCdCode": "118400113",
+   "cdCode": 113,
+   "code": "BV",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.4783325195313,
+   "lng": 4.65666675567627,
+   "radius": 260,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Beverwijk",
+    "middel": "Beverwijk",
+    "kort": "Beverwijk"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400118",
+   "UICCode": "8400118",
+   "UICCdCode": "118400118",
+   "cdCode": 118,
+   "code": "BLL",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.404167175293,
+   "lng": 4.62750005722046,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Bloemendaal",
+    "middel": "Bloemendaal",
+    "kort": "Bloemendl"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400151",
+   "UICCode": "8400151",
+   "UICCdCode": "118400151",
+   "cdCode": 151,
+   "code": "CAS",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.5458335876465,
+   "lng": 4.65861129760742,
+   "radius": 260,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Castricum",
+    "middel": "Castricum",
+    "kort": "Castricum"
+   },
+   "synoniemen": [],
+   "stationType": "INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400183",
+   "UICCode": "8400183",
+   "UICCdCode": "118400183",
+   "cdCode": 183,
+   "code": "DRH",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.4425010681152,
+   "lng": 4.63805532455444,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Driehuis",
+    "middel": "Driehuis",
+    "kort": "Driehuis"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400188",
+   "UICCode": "8400188",
+   "UICCdCode": "118400188",
+   "cdCode": 188,
+   "code": "DVNK",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.1472206115723,
+   "lng": 4.4563889503479,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "De Vink",
+    "middel": "De Vink",
+    "kort": "De Vink"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400280",
+   "UICCode": "8400280",
+   "UICCdCode": "118400280",
+   "cdCode": 280,
+   "code": "GV",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.0697212219238,
+   "lng": 4.32250022888184,
+   "radius": 525,
+   "naderenRadius": 1600,
+   "namen": {
+    "lang": "Den Haag HS",
+    "middel": "Den Haag HS",
+    "kort": "Dn Haag HS"
+   },
+   "synoniemen": [
+    "Den Haag Hollands Spoor",
+    "Hollands Spoor"
+   ],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400282",
+   "UICCode": "8400282",
+   "UICCdCode": "118400282",
+   "cdCode": 282,
+   "code": "GVC",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.0802764892578,
+   "lng": 4.32499980926514,
+   "radius": 525,
+   "naderenRadius": 1600,
+   "namen": {
+    "lang": "Den Haag Centraal",
+    "middel": "Den Haag C.",
+    "kort": "Den Haag C"
+   },
+   "synoniemen": [
+    "Den Haag CS",
+    "Den Haag",
+    "'s-Gravenhage"
+   ],
+   "stationType": "MEGA_STATION"
+  },
+  {
+   "EVACode": "8400285",
+   "UICCode": "8400285",
+   "UICCdCode": "118400285",
+   "cdCode": 285,
+   "code": "HLM",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.3877792358398,
+   "lng": 4.63833332061768,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Haarlem",
+    "middel": "Haarlem",
+    "kort": "Haarlem"
+   },
+   "synoniemen": [],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400020",
+   "UICCode": "8400301",
+   "UICCdCode": "118400301",
+   "cdCode": 301,
+   "code": "HRY",
+   "ingangsDatum": "2025-11-25",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": false,
+   "land": "NL",
+   "lat": 52.9352760314941,
+   "lng": 5.94388866424561,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Heerenveen IJsstadion",
+    "middel": "IJsstadion",
+    "kort": "IJsstadion"
+   },
+   "synoniemen": [
+    "It Hearrenfean IIsstadium"
+   ],
+   "stationType": "FACULTATIEF_STATION"
+  },
+  {
+   "EVACode": "8400302",
+   "UICCode": "8400302",
+   "UICCdCode": "118400302",
+   "cdCode": 302,
+   "code": "HAD",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.3591651916504,
+   "lng": 4.60666656494141,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Heemstede-Aerdenhout",
+    "middel": "Heemstede-A.",
+    "kort": "Heemstede"
+   },
+   "synoniemen": [],
+   "stationType": "INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400317",
+   "UICCode": "8400317",
+   "UICCdCode": "118400317",
+   "cdCode": 317,
+   "code": "HK",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.4952774047852,
+   "lng": 4.68694448471069,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Heemskerk",
+    "middel": "Heemskerk",
+    "kort": "Heemskerk"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400319",
+   "UICCode": "8400319",
+   "UICCdCode": "118400319",
+   "cdCode": 319,
+   "code": "HT",
+   "ingangsDatum": "2025-06-03",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 51.69048,
+   "lng": 5.29362,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "'s-Hertogenbosch",
+    "middel": "'s-Hertogenbosch",
+    "kort": "Den Bosch"
+   },
+   "synoniemen": [
+    "Den Bosch",
+    "Hertogenbosch ('s)"
+   ],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400005",
+   "UICCode": "8400329",
+   "UICCdCode": "118400329",
+   "cdCode": 329,
+   "code": "HIL",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.3025016784668,
+   "lng": 4.56555557250977,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Hillegom",
+    "middel": "Hillegom",
+    "kort": "Hillegom"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400390",
+   "UICCode": "8400390",
+   "UICCdCode": "118400390",
+   "cdCode": 390,
+   "code": "LEDN",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.1661109924316,
+   "lng": 4.48166656494141,
+   "radius": 525,
+   "naderenRadius": 1600,
+   "namen": {
+    "lang": "Leiden Centraal",
+    "middel": "Leiden C.",
+    "kort": "Leiden C"
+   },
+   "synoniemen": [
+    "Leiden CS",
+    "Leiden"
+   ],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400424",
+   "UICCode": "8400424",
+   "UICCdCode": "118400424",
+   "cdCode": 424,
+   "code": "MT",
+   "ingangsDatum": "2025-06-03",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 50.8502769470215,
+   "lng": 5.70555543899536,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Maastricht",
+    "middel": "Maastricht",
+    "kort": "Maastricht"
+   },
+   "synoniemen": [],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  },
+  {
+   "EVACode": "8400530",
+   "UICCode": "8400530",
+   "UICCdCode": "118400530",
+   "cdCode": 530,
+   "code": "RTD",
+   "ingangsDatum": "2017-02-01",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 51.9249992370605,
+   "lng": 4.46888875961304,
+   "radius": 525,
+   "naderenRadius": 1000,
+   "namen": {
+    "lang": "Rotterdam Centraal",
+    "middel": "Rotterdam C.",
+    "kort": "Rotterdm C"
+   },
+   "synoniemen": [
+    "Rotterdam CS",
+    "Rotterdam"
+   ],
+   "stationType": "MEGA_STATION"
+  },
+  {
+   "EVACode": "8400543",
+   "UICCode": "8400543",
+   "UICCdCode": "118400543",
+   "cdCode": 543,
+   "code": "SPTN",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.4338874816895,
+   "lng": 4.63250017166138,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Santpoort Noord",
+    "middel": "Santpoort Noord",
+    "kort": "Santprt N"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400544",
+   "UICCode": "8400544",
+   "UICCdCode": "118400544",
+   "cdCode": 544,
+   "code": "SPTZ",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.4197235107422,
+   "lng": 4.63138866424561,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Santpoort Zuid",
+    "middel": "Santpoort Zuid",
+    "kort": "Santprt Z"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400561",
+   "UICCode": "8400561",
+   "UICCdCode": "118400561",
+   "cdCode": 561,
+   "code": "SHL",
+   "ingangsDatum": "2025-06-03",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.3094444274902,
+   "lng": 4.76194429397583,
+   "radius": 2800,
+   "naderenRadius": 3200,
+   "namen": {
+    "lang": "Schiphol Airport",
+    "middel": "Schiphol Airport",
+    "kort": "Schiphol",
+    "festive": "Schiphol Airport ✈"
+   },
+   "synoniemen": [
+    "Amsterdam Airport"
+   ],
+   "stationType": "MEGA_STATION"
+  },
+  {
+   "EVACode": "8400615",
+   "UICCode": "8400615",
+   "UICCdCode": "118400615",
+   "cdCode": 615,
+   "code": "UTG",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.5216674804687,
+   "lng": 4.70166683197022,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Uitgeest",
+    "middel": "Uitgeest",
+    "kort": "Uitgeest"
+   },
+   "synoniemen": [],
+   "stationType": "KNOOPPUNT_STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400621",
+   "UICCode": "8400621",
+   "UICCdCode": "118400621",
+   "cdCode": 621,
+   "code": "UT",
+   "ingangsDatum": "2025-06-03",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.0888900756836,
+   "lng": 5.11027765274048,
+   "radius": 525,
+   "naderenRadius": 1550,
+   "namen": {
+    "lang": "Utrecht Centraal",
+    "middel": "Utrecht C.",
+    "kort": "Utrecht C"
+   },
+   "synoniemen": [
+    "Utrecht CS",
+    "Utrecht"
+   ],
+   "stationType": "MEGA_STATION"
+  },
+  {
+   "EVACode": "8400655",
+   "UICCode": "8400655",
+   "UICCdCode": "118400655",
+   "cdCode": 655,
+   "code": "VH",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.2244453430176,
+   "lng": 4.4844446182251,
+   "radius": 200,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Voorhout",
+    "middel": "Voorhout",
+    "kort": "Voorhout"
+   },
+   "synoniemen": [],
+   "stationType": "STOPTREIN_STATION"
+  },
+  {
+   "EVACode": "8400731",
+   "UICCode": "8400731",
+   "UICCdCode": "118400731",
+   "cdCode": 731,
+   "code": "ZD",
+   "ingangsDatum": "2024-12-15",
+   "heeftFaciliteiten": true,
+   "heeftReisassistentie": true,
+   "heeftVertrektijden": true,
+   "land": "NL",
+   "lat": 52.4388885498047,
+   "lng": 4.81361103057861,
+   "radius": 525,
+   "naderenRadius": 1200,
+   "namen": {
+    "lang": "Zaandam",
+    "middel": "Zaandam",
+    "kort": "Zaandam"
+   },
+   "synoniemen": [],
+   "stationType": "KNOOPPUNT_INTERCITY_STATION"
+  }
+ ]
+}

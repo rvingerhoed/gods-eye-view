@@ -116,6 +116,22 @@ export class LayerBindings {
     });
   }
 
+  /** Same camera seam as Directions, for the Spoor NL planner's fly-to. */
+  _connectRailCamera() {
+    const rail = this._dataManager?.layers?.get('rail')?.module || null;
+    if (this._railShellModule !== rail) {
+      this._railShellModule?.attachShellServices?.(null);
+      this._railShellModule = null;
+    }
+    if (typeof rail?.attachShellServices !== 'function') return;
+    this._railShellModule = rail;
+    rail.attachShellServices({
+      runNavigation: (navigate) =>
+        this.runImmediateNavigation('route', navigate),
+      showToast: (message) => this._showToast(message),
+    });
+  }
+
   _persistAwarenessSelection(event, cleared = false) {
     if (!this._dataManager) return;
     const origin = String(event?.detail?.origin || 'programmatic');
@@ -212,6 +228,7 @@ export class LayerBindings {
     this._cctvControls.connect();
     this._radioControls.connect();
     this._connectDirectionsCamera();
+    this._connectRailCamera();
     if (!this._awarenessSelectedHandler) {
       this._awarenessSelectedHandler = (event) =>
         this._persistAwarenessSelection(event, false);
@@ -262,6 +279,8 @@ export class LayerBindings {
     this._dataManagerUnsubscribe = null;
     this._directionsShellModule?.attachShellServices?.(null);
     this._directionsShellModule = null;
+    this._railShellModule?.attachShellServices?.(null);
+    this._railShellModule = null;
     this._dataManager = null;
   }
 }

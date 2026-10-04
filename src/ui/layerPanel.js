@@ -45,7 +45,7 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Utilities',
-    ids: ['directions', 'radio'],
+    ids: ['directions', 'rail', 'radio'],
   },
 ];
 const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids }) =>

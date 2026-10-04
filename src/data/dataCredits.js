@@ -184,6 +184,12 @@ export const DATA_CREDITS = [
       '<a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener">fix the map</a>',
   },
   {
+    key: 'ns-api',
+    html:
+      'Reisinformatie & Spoorkaart (Spoor NL): NS (Nederlandse Spoorwegen) — ' +
+      '<a href="https://apiportal.ns.nl" target="_blank" rel="noopener">NS API Portal</a>',
+  },
+  {
     key: 'gtfs-rt',
     html: 'Transit vehicles: operator GTFS-Realtime feeds (each operator is credited below when its vehicles are shown)',
   },
