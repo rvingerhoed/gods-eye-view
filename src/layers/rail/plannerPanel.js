@@ -205,7 +205,8 @@ export function createRailPlannerPanel({
       } else if (event.key === 'Enter') {
         if (!list.hidden && active >= 0) choose(active);
         else if (!list.hidden && hits.length === 1) choose(0);
-        else if (input.dataset.planOnEnter === '1') plan();
+        // One Enter in NAAR picks the station and plans; no second Enter.
+        if (input.dataset.planOnEnter === '1') plan();
         event.preventDefault();
       } else if (event.key === 'Escape') {
         if (!list.hidden) {
@@ -226,7 +227,23 @@ export function createRailPlannerPanel({
         close();
       }, 120);
     });
-    return { field, input };
+    /**
+     * Text typed without picking from the list becomes the best match, so
+     * the PLAN button works on "castricum" just like Enter does.
+     * @returns {object|null} The station now in this field, or null.
+     */
+    const resolve = () => {
+      const text = input.value.trim();
+      if (!text) return null;
+      const best = search(text)[0] || null;
+      if (best) {
+        input.value = best.name;
+        close();
+        onPick(best);
+      }
+      return best;
+    };
+    return { field, input, resolve };
   }
 
   function build() {
@@ -291,6 +308,8 @@ export function createRailPlannerPanel({
     refs = {
       from: from.input,
       to: to.input,
+      fromField: from,
+      toField: to,
       when,
       dep,
       arr,
@@ -393,9 +412,11 @@ export function createRailPlannerPanel({
     if (!root) return;
     refs.dep.classList.toggle('on', !arrival);
     refs.arr.classList.toggle('on', arrival);
-    const ready = Boolean(
-      fromStation && toStation && fromStation.code !== toStation.code,
-    );
+    const filled = (station, input) => Boolean(station || input.value.trim());
+    const ready =
+      filled(fromStation, refs.from) &&
+      filled(toStation, refs.to) &&
+      !(fromStation && toStation && fromStation.code === toStation.code);
     refs.planBtn.disabled = !ready || busy;
     refs.planBtn.textContent = busy ? 'PLANNEN…' : 'PLAN';
     refs.clearBtn.disabled = options.length === 0;
@@ -403,9 +424,20 @@ export function createRailPlannerPanel({
 
   function plan() {
     if (busy) return;
-    if (!fromStation || !toStation) {
-      setStatus('error', 'Kies eerst een VAN- en NAAR-station uit de lijst.');
-      return;
+    for (const [station, field, label] of [
+      [fromStation, refs.fromField, 'VAN'],
+      [toStation, refs.toField, 'NAAR'],
+    ]) {
+      if (station) continue;
+      const typed = field.input.value.trim();
+      if (!typed) {
+        setStatus('error', `Vul een ${label}-station in.`);
+        return;
+      }
+      if (!field.resolve()) {
+        setStatus('error', `Geen station gevonden voor "${typed}".`);
+        return;
+      }
     }
     if (fromStation.code === toStation.code) {
       setStatus('error', 'VAN en NAAR zijn hetzelfde station.');
