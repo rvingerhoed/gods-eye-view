@@ -1,8 +1,13 @@
 import { SceneDirector } from '../scenes/director.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
+import { initGeoFileImport } from '../ui/geoFileImport.js';
+import { initImageryBoxTool } from '../ui/imageryBoxTool.js';
+import { createRecentImageryPanel } from '../ui/recentImagery.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
+import { installViews, isEmbeddedInline } from './embed.js';
 import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
+import { installLayerReleaseTrim } from '../sceneCommandRelease.js';
 import {
   installRenderGovernor,
   getRenderGovernorDiagnostics,
@@ -53,12 +58,68 @@ export function createApplicationTools({
   // lifetime rather than to whoever last pressed the button.
   const drawTool = initDrawTool({ viewer, annotations });
   defer(() => drawTool?.destroy());
+  // DISPLAY ▸ Import: the person's own GeoJSON/KML/KMZ/GPX files, each its
+  // own data source. They live for the page session, so the application
+  // lifetime removes them and the drop listeners on the viewer container.
+  const geoFileImport = initGeoFileImport({
+    viewer,
+    navigation: styleManager,
+    ground: operations.surface?.groundFloor,
+    subscribeMapSource: (listener) => mapStackController?.subscribe?.(listener),
+  });
+  defer(() => geoFileImport?.destroy());
+  // DATA ▸ Recent Imagery: the box tool claims the pointer like Draw and the
+  // panel lives on the right rail, so both belong to the application
+  // lifetime. The tileset lets the layer drape while the globe is hidden.
+  const recentImagery = dataManager.layers.get('recent-imagery')?.module;
+  if (recentImagery) {
+    recentImagery.attachTileset(tileset);
+    const imageryBoxTool = initImageryBoxTool({
+      viewer,
+      onBox: (box) => recentImagery.setBox(box),
+      onCancel: (reason, message, box) => {
+        if (message) recentImagery.reportBoxRefusal(message, box);
+      },
+      onActive: (active) => recentImagery.setToolActive(active),
+      // The tool takes Escape in a capture listener, so the panel's order
+      // (clear a preview before cancelling the tool) is applied here.
+      onEscape: () => recentImagery.clearPreview(),
+    });
+    // The readout mounts in its rail body through the layer panel, like the
+    // weather readout.
+    data.presentation.attachRecentImagery((container) =>
+      createRecentImageryPanel({
+        container,
+        viewer,
+        layer: recentImagery,
+        tool: imageryBoxTool,
+      }),
+    );
+    // The live gate's handle (scripts/qa-recent-imagery.mjs).
+    const recentImageryHandle = { layer: recentImagery, tool: imageryBoxTool };
+    window.__gevRecentImagery = recentImageryHandle;
+    defer(() => {
+      if (window.__gevRecentImagery === recentImageryHandle)
+        delete window.__gevRecentImagery;
+      data.presentation.attachRecentImagery(null);
+      imageryBoxTool?.destroy();
+    });
+  }
   if (startChrome)
     defer(startChrome({ loadingScreen, styleManager, dataManager, signal }));
   // Idle render governor: flips the scene into requestRenderMode whenever
   // nothing animates per frame. Installed AFTER every module above has had
   // its chance to register pre-install holds. (perf wave 2)
   installRenderGovernor(viewer);
+  // Cesium keeps a turned-off layer's draw commands (and so all its entities)
+  // alive in reused per-pass arrays; trim them after each disable.
+  defer(
+    installLayerReleaseTrim({
+      scene: viewer.scene,
+      dataManager,
+      requestRender: governorRequestRender,
+    }),
+  );
 
   // Install the explicit scope mask used by the DISPLAY controls.
   installScopeMask(viewer);
@@ -79,7 +140,9 @@ export function createApplicationTools({
   // GPU. Holder/data state is untouched, so return is seamless: restore
   // the loop, refresh the one DOM surface we gated, render a frame.
   const syncVisibilitySuspension = () => {
-    const hidden = document.hidden;
+    // A panel's host may report it hidden while it is on screen; the panel
+    // keeps drawing itself (see keepPanelRendering in embed.js).
+    const hidden = document.hidden && !isEmbeddedInline();
     viewer.useDefaultRenderLoop = !hidden;
     cockpitCloudEffects?.setSuspended?.(hidden);
     if (!hidden) {
@@ -137,5 +200,14 @@ export function createApplicationTools({
       delete window.__gevVoiceCommands;
   });
   debug.voiceCommands = voiceCommands;
+  defer(
+    installViews({
+      shell: styleManager,
+      viewer,
+      dataManager,
+      run: (name, args) => voiceCommands.runner(name, args, { signal }),
+      signal,
+    }),
+  );
   return { sceneDirector, annotations, voiceCommands };
 }

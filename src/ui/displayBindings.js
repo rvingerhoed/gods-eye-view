@@ -1,6 +1,7 @@
+import { clampScopeFeatherPct } from '../scopeMaskPolicy.js';
 import { createFrameRateMonitor } from './frameRateMonitor.js';
 import { bindApplicationShortcuts } from './visualInput.js';
-import { bindDisplayControls } from './displayControls.js';
+import { bindDisplayControls, syncScopeControls } from './displayControls.js';
 import { canonicalizeDensity } from '../data/detectionPolicy.js';
 
 /** Own keyboard/display event subscriptions; settings remain with their state owners. */
@@ -64,7 +65,7 @@ export class DisplayBindings {
       documentRef: document,
       searchInput: this._locationSearch,
       actions: {
-        setStyle: (style) => this.setStyle(style),
+        setStyle: (style) => this.setStyle(style, { userInitiated: true }),
         dismissSearch: () => {
           if (this._locationSearch.classList.contains('expanded')) {
             this._locationSearch.classList.remove('expanded');
@@ -92,6 +93,11 @@ export class DisplayBindings {
       },
     });
 
+    syncScopeControls(
+      this._scopeBtn,
+      this._scopeFeatherSlider,
+      isScopeMaskEnabled(),
+    );
     this._displayControls?.destroy();
     this._displayControls = bindDisplayControls({
       elements: {
@@ -100,10 +106,16 @@ export class DisplayBindings {
         bloomSlider: this._bloomSlider,
         sharpenButton: this._sharpenBtn,
         sharpenSlider: this._sharpenSlider,
-        scopeButton: this._scopeBtn,
+        scopeToggle: this._scopeBtn,
         scopeFeatherSlider: this._scopeFeatherSlider,
         hudLayout: this._hudLayoutSelect,
         hudButton: this._hudBtn,
+        sonarButton: this._cyberSonarBtn,
+        sonarRingsSlider: this._cyberSonarRings,
+        sonarRangeSlider: this._cyberSonarRange,
+        sonarIntensitySlider: this._cyberSonarIntensity,
+        sonarOpacitySlider: this._cyberSonarOpacity,
+        sonarSectorSlider: this._cyberSonarSector,
         cleanViewButton: this._cleanViewBtn,
         cleanViewExitButton: this._cleanViewExitBtn,
         densitySlider: this._detectionDensitySlider,
@@ -115,7 +127,7 @@ export class DisplayBindings {
         modelModeButtons: this._models3dBtn ? this._models3dModeBtns : [],
       },
       actions: {
-        setStyle: (style) => this.setStyle(style),
+        setStyle: (style) => this.setStyle(style, { userInitiated: true }),
         toggleBloom: () => {
           this.shareLinkManager?.claimRestoreLane?.('visual');
           this._setBloomEnabled(!this.bloomEnabled);
@@ -128,17 +140,15 @@ export class DisplayBindings {
           this.shareLinkManager?.claimRestoreLane?.('visual');
           this._setSharpenEnabled(!this.sharpenEnabled);
         },
-        toggleScope: () => {
+        setScopeEnabled: (enabled) => {
           this.shareLinkManager?.claimRestoreLane?.('visual');
-          const next = !isScopeMaskEnabled();
-          setScopeMaskEnabled(next);
-          this._scopeBtn.classList.toggle('active', next);
-          this._scopeBtn.setAttribute('aria-pressed', String(next));
+          setScopeMaskEnabled(enabled);
+          syncScopeControls(this._scopeBtn, this._scopeFeatherSlider, enabled);
           this._syncShareState();
         },
         setScopeFeather: (value) => {
           this.shareLinkManager?.claimRestoreLane?.('visual');
-          const pct = Math.max(0, Math.min(100, value || 0));
+          const pct = clampScopeFeatherPct(value);
           if (this._scopeFeatherValue)
             this._scopeFeatherValue.textContent = `${pct}%`;
           setScopeMaskFeather(pct / 100);
@@ -153,7 +163,7 @@ export class DisplayBindings {
         },
         setHudLayout: (value) => {
           this.shareLinkManager?.claimRestoreLane?.('visual');
-          this._setHudVariant(value);
+          this._setHudVariant(value, { applyVisualDefaults: true });
         },
         toggleCleanView: () => this.toggleCleanView(),
         exitCleanView: () => this.toggleCleanView(false),
@@ -191,6 +201,14 @@ export class DisplayBindings {
           this._updateHudButtonState();
           this._syncShareState();
         },
+        toggleSonar: () => this._setCyberSonarEnabled(),
+        setSonarRings: (value) => this._setCyberSonarSetting('rings', value),
+        setSonarRange: (value) => this._setCyberSonarSetting('range', value),
+        setSonarIntensity: (value) =>
+          this._setCyberSonarSetting('intensity', value),
+        setSonarOpacity: (value) =>
+          this._setCyberSonarSetting('opacity', value),
+        setSonarSector: (value) => this._setCyberSonarSetting('sector', value),
         cycleDetection: () => {
           this.shareLinkManager?.claimRestoreLane?.('visual');
           this.claimDetection();

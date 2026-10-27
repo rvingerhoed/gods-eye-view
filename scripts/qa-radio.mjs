@@ -167,6 +167,13 @@ async function main() {
     page.on('request', (request) => {
       const url = new URL(request.url());
 
+      // Radio QA uses keyless maps; an optional Google token is not offered.
+      if (request.method() === 'GET' && url.origin === APP_ORIGIN
+        && url.pathname === '/api/google/tiles-token') {
+        request.respond({ status: 200, contentType: 'application/json', body: '{}' });
+        return;
+      }
+
     // These scenarios exercise Context lifecycle and keyboard ownership, not
     // live orbit accuracy. Reuse the tracking suite's fixed element sets so
     // CelesTrak outages cannot invalidate an otherwise clean UI run.
@@ -219,7 +226,7 @@ async function main() {
         });
         return;
       }
-      if (url.origin === APP_ORIGIN && url.pathname === '/api/ais-live') {
+      if (url.origin === APP_ORIGIN && url.pathname === '/api/vessels') {
         request.respond({
           status: 200,
           contentType: 'application/json',
@@ -374,7 +381,7 @@ async function main() {
         enabled: true,
         uncertain: true,
       });
-      gev.dataManager._refreshTogglePanel();
+      gev.dataManager.refreshLayerStats();
       const staticResult = module.setTuningStatic(true);
       const filterBefore = module.getUIState().filter;
       const filterControl = document.getElementById('radio-filter');
@@ -447,7 +454,7 @@ async function main() {
         enabled: true,
         uncertain: false,
       });
-      gev.dataManager._refreshTogglePanel();
+      gev.dataManager.refreshLayerStats();
       module.cancelTuning();
       camera.flyTo = originalFlyTo;
       return result;
@@ -1284,8 +1291,6 @@ async function main() {
     const clusterBadge = await page.evaluate(async () => {
       const viewer = window.__godsEyeView.viewer;
       const { getOverlayPaintRect, getWorldOverlayDiagnostics } = await import('/src/overlays/worldOverlay.js');
-      const { distanceFade } = await import('/src/overlays/worldOverlayDraw.js');
-      const { radioStationIdFromPick } = await import('/src/data/radio.js');
       const baselineSolveRevision = getWorldOverlayDiagnostics().solveRevision;
       const source = Array.from({ length: viewer.dataSources.length }, (_, index) => viewer.dataSources.get(index))
         .find((item) => item.name === 'Radio stations');
@@ -2754,13 +2759,16 @@ async function main() {
       const beforeSpace = radio.getUIState().audioState;
       // Simulate an already-started hold-Space session; click-started open mic
       // deliberately ignores Space takeover, and short taps never claim voice.
-      const priorPushToTalkMode = voice.pushToTalkMode;
-      voice.pushToTalkMode = true;
+      // The provider facade forwards reads, not writes. Set the mounted
+      // controller's input owner; assigning on the facade only shadows it.
+      const controller = voice.session.adapter.controller;
+      const priorPushToTalkMode = controller.pushToTalkMode;
+      controller.pushToTalkMode = true;
       document.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, cancelable: true, code: 'Space', key: ' ' }));
       await new Promise((resolve) => setTimeout(resolve, 700));
       const afterSpace = radio.getUIState().audioState;
       document.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, cancelable: true, code: 'Space', key: ' ' }));
-      voice.pushToTalkMode = priorPushToTalkMode;
+      controller.pushToTalkMode = priorPushToTalkMode;
       await radio.play();
       voice.setVoiceSpeaker('ai');
       return { beforeSpace, afterSpace, afterAi: radio.getUIState().audioState };
@@ -4048,7 +4056,13 @@ async function main() {
       const { getOverlayPaintRect, getWorldOverlayDiagnostics } = await import('/src/overlays/worldOverlay.js');
       const expectedEntryId = `selected:${selected.id}`;
       let painted = null;
-      for (let attempt = 0; attempt < 20 && !painted?.rect; attempt += 1) {
+      // Radio's horizon pass reveals the selected entity on its own timer
+      // after the camera jump, so a stationary view waits for both to settle.
+      for (
+        let attempt = 0;
+        attempt < 20 && !(painted?.rect && selectedEntity?.show === true);
+        attempt += 1
+      ) {
         painted = await new Promise((resolve) => {
           let removePostRender = null;
           const timeout = setTimeout(() => {

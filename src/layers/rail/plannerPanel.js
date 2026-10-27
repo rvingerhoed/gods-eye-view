@@ -249,11 +249,13 @@ export function createRailPlannerPanel({
   function build() {
     injectStyle();
     root = el(doc, 'section', 'rail-panel');
+    // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
     root.setAttribute('aria-label', 'Spoor NL reisplanner');
     const head = el(doc, 'div', 'rail-head');
     head.append(el(doc, 'span', '', '🚆 SPOOR NL · REISPLANNER'));
     const close = el(doc, 'button', '', '×');
     close.type = 'button';
+    // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
     close.title = 'Paneel sluiten (PLANNER-chip opent het weer)';
     head.append(close);
     const body = el(doc, 'div', 'rail-body');
@@ -271,6 +273,7 @@ export function createRailPlannerPanel({
     to.input.dataset.planOnEnter = '1';
     const swap = el(doc, 'button', 'rail-swap', '⇅');
     swap.type = 'button';
+    // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
     swap.title = 'VAN en NAAR omwisselen';
     from.field.append(swap);
 
@@ -283,6 +286,7 @@ export function createRailPlannerPanel({
       'background:rgba(255,255,255,.05);color:#e9fbff;border:1px solid rgba(57,208,255,.25);border-radius:4px;padding:4px 6px;font:inherit;color-scheme:dark';
     const nowBtn = el(doc, 'button', 'rail-btn', 'NU');
     nowBtn.type = 'button';
+    // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
     nowBtn.title = 'Tijd op nu zetten';
     row.append(when, nowBtn);
 
@@ -418,6 +422,7 @@ export function createRailPlannerPanel({
       filled(toStation, refs.to) &&
       !(fromStation && toStation && fromStation.code === toStation.code);
     refs.planBtn.disabled = !ready || busy;
+    // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
     refs.planBtn.textContent = busy ? 'PLANNEN…' : 'PLAN';
     refs.clearBtn.disabled = options.length === 0;
   }

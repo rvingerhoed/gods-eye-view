@@ -26,7 +26,10 @@ const child = spawn(process.execPath, [viteBin], {
     GEV_FRAME_ANCESTORS: 'https://localhost:3001 https://jarvis.nextaiforge.dev',
     GEV_HTTPS_CERT: path.join(jarvisCertDir, 'jarvis-cert.pem'),
     GEV_HTTPS_KEY: path.join(jarvisCertDir, 'jarvis-key.pem'),
-    PORT: '4174',
+    // The Cloudflare tunnel forwards gev.nextaiforge.dev to this port.
+    GEV_ALLOWED_HOSTS: 'gev.nextaiforge.dev',
+    // Override only for a parallel test instance (e.g. an upstream-merge worktree).
+    PORT: process.env.GEV_JARVIS_PORT || '4174',
   },
 });
 

@@ -1,5 +1,6 @@
 import { readRealtimeSource } from './testSupport/readRealtimeSource.mjs';
 import { GEV_REALTIME_TOOLS } from '../server/providers/openai/tools.js';
+import { realtimeInstructions } from '../server/providers/openai/instructions.js';
 import { readShellSource } from './testSupport/readShellSource.mjs';
 import { expandApplicationHtml } from '../build/application-html.js';
 import { readLayerSource } from './testSupport/readLayerSource.mjs';
@@ -20,20 +21,23 @@ const radio = ['playback', 'interaction'].map(name =>
 ).join('\n').replace(/layerState\.|parts\.\w+\./g, '');
 const rocketLaunches = readLayerSource(new URL('./data/rocketLaunches.js', import.meta.url), 'utf8');
 const realtime = readRealtimeSource();
-const voice = readFileSync(new URL('./voice/actionSchemas.js', import.meta.url), 'utf8') + '\n' + ['toolDescriptions', 'instructions'].map(name => readFileSync(new URL(`../server/providers/openai/${name}.js`, import.meta.url), 'utf8')).join('\n');
+const voice = ['./voice/actionSchemas.js', '../server/providers/openai/toolDescriptions.js', '../server/providers/openai/instructions.js'].map(file => readFileSync(new URL(file, import.meta.url), 'utf8')).join('\n');
 const css = readStylesheet(new URL('../style.css', import.meta.url));
 
 function realtimeTools() { return GEV_REALTIME_TOOLS; }
 
-test('Realtime schema exposes the authoritative 28-tool inventory', () => {
+test('Realtime schema exposes the authoritative 31-tool inventory', () => {
   const tools = realtimeTools();
-  assert.equal(tools.length, 28);
+  assert.equal(tools.length, 31);
   const names = tools.map((tool) => tool.name);
-  assert.equal(new Set(names).size, 28, 'tool names are unique');
+  assert.equal(new Set(names).size, 31, 'tool names are unique');
   assert.ok(names.includes('set_context_mode'));
   assert.ok(names.includes('control_cockpit'));
+  assert.ok(names.includes('set_voice_inactivity_timeout'));
   assert.ok(names.includes('select_nearest_aircraft'));
   assert.ok(names.includes('control_radio'));
+  assert.ok(names.includes('next_satellite_pass'));
+  assert.ok(names.includes('next_iss_pass'));
   // Every tool closes its parameter object: an open schema lets the model
   // invent arguments the runner silently drops.
   for (const tool of tools) {
@@ -65,17 +69,22 @@ test('the counting contract is stated in the Realtime instructions', () => {
   assert.match(text, /scopeLabel/, 'rule 3 names its mechanism');
   assert.match(text, /never a bare number/, 'rule 3 is stated as a prohibition too');
   assert.match(text, /VERBATIM/, 'rule 4: no estimating');
-  assert.match(text, /flights layer loads where you look/, 'rule 5: the loaded-data caveat');
+  // Rule 5, the loaded-data caveat, is now one word inside the spoken scope
+  // ("37 loaded flights over Texas"); the longer note stays on screen.
+  const analyst = voice.slice(
+    voice.indexOf("'For ANALYTICAL questions"),
+    voice.indexOf('\n', voice.indexOf("'For ANALYTICAL questions")),
+  );
+  assert.match(analyst, /"37 loaded flights over Texas"/, 'rule 5: loaded scope stays audible');
 });
 
 test('Context panel opening stays distinct from Contacts activation', () => {
-  const start = voice.indexOf("'For requests to open, show, reveal, or focus a menu/panel");
-  assert.ok(start >= 0, 'panel-routing instruction is missing');
-  const text = voice.slice(start, voice.indexOf('\n', start));
-  assert.match(text, /"Open Context" means only set_panel_open/);
-  assert.match(text, /does not activate a Context sub-mode/);
-  assert.match(text, /"Open Contacts" means set_context_mode\{mode:"contacts"\}/);
-  assert.match(text, /expands the parent Context panel before activating Contacts/);
+  const text = realtimeInstructions().split('\n').find(line => line.startsWith('Panels:'));
+  assert.ok(text, 'panel-routing instruction is missing');
+  assert.match(text, /"Open Context" is only set_panel_open\{panelId:"global-context-panel",open:true\}/);
+  assert.match(text, /opening Context or selecting\/viewing an aircraft never enters them/);
+  assert.match(text, /"Open Contacts" is set_context_mode contacts/);
+  assert.match(text, /expands Context itself/);
 });
 
 test('nearest-aircraft selection stays out of Contacts and Cockpit', () => {
@@ -91,14 +100,14 @@ test('nearest-aircraft selection stays out of Contacts and Cockpit', () => {
   assert.match(text, /nearest airborne result/);
   assert.match(text, /healthy fallback feed is valid data/i);
   assert.match(text, /Do not also call fly_to_location, set_layer_visibility, analyst_query, track_entity/);
-  assert.match(text, /SELECT\/FIND never implies Contacts or Cockpit/);
+  const routing = realtimeInstructions().split('\n').find(line => line.startsWith('Panels:'));
+  assert.match(routing, /Contacts, Space Missions and Cockpit need explicit naming/);
   assert.match(text, /set_context_mode, or control_cockpit/);
 
   const byName = new Map(realtimeTools().map((tool) => [tool.name, tool]));
-  assert.match(byName.get('set_context_mode').description, /explicitly requests/);
-  assert.match(byName.get('set_context_mode').description, /selecting an aircraft does not imply Context/i);
-  assert.match(byName.get('control_cockpit').description, /explicitly requests Cockpit/);
-  assert.match(byName.get('control_cockpit').description, /must not enter Cockpit/);
+  assert.match(byName.get('set_context_mode').description, /only when explicitly requested/);
+  assert.match(routing, /selecting\/viewing an aircraft never enters them/);
+  assert.match(byName.get('control_cockpit').description, /Explicit Cockpit requests only/);
   assert.equal(
     byName.get('fly_to_location').parameters.properties.waitForArrival.type,
     'boolean',
@@ -109,7 +118,6 @@ test('nearest-aircraft selection stays out of Contacts and Cockpit', () => {
   assert.match(nearest.description, /Atomically/);
   assert.match(nearest.description, /exclude on-ground records/);
   assert.match(nearest.description, /fallback feeds remain usable/);
-  assert.match(nearest.description, /does not open Contacts or Cockpit/);
 });
 
 test('the two Context/Cockpit tools pin their enums and required arguments', () => {
@@ -145,7 +153,7 @@ test('the edited existing tools changed exactly as intended', () => {
   const panel = byName.get('set_panel_open');
   assert.deepEqual(
     panel.parameters.properties.panelId.enum,
-    ['data-panel', 'location-bar', 'control-panel', 'cctv-panel', 'radio-panel', 'scene-panel', 'pp-toggles', 'global-context-panel'],
+    ['data-panel', 'location-bar', 'control-panel', 'cctv-panel', 'radio-panel', 'scene-panel', 'pp-toggles', 'global-context-panel', 'weather-panel', 'recent-imagery-panel', 'voice-settings', 'voice-preview', 'provider-settings'],
   );
   assert.deepEqual(panel.parameters.required, ['panelId', 'open']);
 
@@ -171,28 +179,77 @@ test('no unchanged Realtime tool definition drifts silently', () => {
   // in the mic-test brief which tools moved — the session cache busts on any
   // schema change.
   const TOUCHED = new Set([
+    'set_cyber_sonar',
     'set_context_mode',
     'control_cockpit',
     'set_panel_open',
+    'set_voice_inactivity_timeout',
     'get_current_view_state',
     'fly_to_location',
     'select_nearest_aircraft',
     'set_map_stack',
+    'analyst_query',
+    'next_iss_pass',
+    'next_satellite_pass',
+    // Local ADS-B adds one layer enum value and its common-name mapping.
+    'set_layer_visibility',
+    // Layer enums generated from the voice layer manifest, and the corrected
+    // track_entity layer hint.
+    'show_data_layers_menu',
+    'get_entity_context',
+    'track_entity',
+    // Point-and-ask: 'pointer' sentinels and referent arguments.
+    'annotate_map',
   ]);
   const unchanged = realtimeTools()
     .filter((tool) => !TOUCHED.has(tool.name))
-    .sort((a, b) => a.name.localeCompare(b.name));
-  assert.equal(unchanged.length, 21);
+    .sort((a, b) => a.name.localeCompare(b.name))
+    .map((tool) => structuredClone(tool))
+    .filter((tool) => tool.name !== 'set_cyber_sonar');
+  // Cyber adds one HUD choice and the sonar tool; retain the existing pin for every legacy field.
+  const hudLayout = unchanged.find((tool) => tool.name === 'set_hud').parameters.properties.layout;
+  assert.deepEqual(hudLayout.enum, ['tactical', 'operator', 'minimal', 'cyber']);
+  hudLayout.enum = hudLayout.enum.filter((layout) => layout !== 'cyber');
+  // Globe rotation adds one motion and clarifies the two affected descriptions.
+  // Check those edits explicitly, then keep the legacy pin for every other field.
+  const camera = unchanged.find((tool) => tool.name === 'move_camera');
+  assert.deepEqual(camera.parameters.properties.motion.enum, [
+    'orbit',
+    'pan',
+    'tilt',
+    'rotate',
+    'rotate_globe',
+    'stop',
+  ]);
+  assert.equal(
+    camera.description,
+    'Direct the camera like a drone operator: orbit the current view target, pan, tilt, or rotate — one bounded nudge (mode=once) or continuous motion until stopped (mode=continuous). Continuous motion also stops on any manual camera input or when a navigation tool runs. Say the RESULTING state when confirming ("Orbiting slowly"). Globe rotation (rotate_globe) spins Earth right continuously by default; explicit direction, mode and speed take precedence. It checks fit and may refuse.',
+  );
+  assert.equal(
+    camera.parameters.properties.direction.description,
+    'Required for pan/tilt/rotate; orbit/rotate_globe default right.',
+  );
+  assert.equal(camera.parameters.properties.mode.description, 'once = bounded eased nudge; continuous = until stop/manual input. rotate_globe defaults continuous; other motions default once.');
+  camera.parameters.properties.mode.description = 'once = bounded eased nudge (default); continuous = until stop/manual input.';
+  camera.parameters.properties.motion.enum =
+    camera.parameters.properties.motion.enum.filter(
+      (motion) => motion !== 'rotate_globe',
+    );
+  camera.description =
+    'Direct the camera like a drone operator: orbit the current view target, pan, tilt, or rotate — one bounded nudge (mode=once) or continuous motion until stopped (mode=continuous). Continuous motion also stops on any manual camera input or when a navigation tool runs. Say the RESULTING state when confirming ("Orbiting slowly").';
+  camera.parameters.properties.direction.description =
+    'Required except for orbit (defaults right/clockwise) and stop.';
+  assert.equal(unchanged.length, 14);
   const digest = createHash('sha256')
     .update(JSON.stringify(unchanged))
     .digest('hex')
     .slice(0, 16);
-  // ALPR intentionally extends the two layer enums; retain the complete pin.
-  assert.equal(digest, '6963175a0c9a76de', 'an unchanged Realtime tool definition drifted');
+  // Analyst additions and ISS wording correction are explicitly excluded above; all other tool definitions retain their pin.
+  assert.equal(digest, '25d1b902ecaa22fb', 'an unchanged Realtime tool definition drifted');
 });
 
 test('Radio volume and mission speed share the Sharpen slider visual language', () => {
-  for (const id of ['cockpit-radio-volume', 'context-radio-mini-volume', 'radio-volume']) {
+  for (const id of ['cockpit-radio-volume', 'context-radio-mini-volume', 'radio-volume', 'sdr-volume']) {
     assert.match(
       html,
       new RegExp(`id="${id}"[^>]*class="gev-quantitative-slider"[^>]*type="range"`),
@@ -267,7 +324,10 @@ test('Radio is nested inside Context with separate disclosure and power controls
   assert.match(radioControlsSource, /classList\.remove\('radio-broadcasting'\)/);
   assert.match(radioBindings, /this\.radio\.getTunerStations\(750\)/);
   assert.match(radioBindings, /radioTunerPointerPosition\(/);
-  assert.doesNotMatch(css, /#right-context-rail\s*>\s*#radio-panel/);
+  // Only the Cyber skin promotes Radio to a peer panel. Other themes retain
+  // the embedded Context layout; theme round-trip behavior has separate tests.
+  const baseCss = css.replace(readFileSync(new URL('./ui/styles/cyber.css', import.meta.url), 'utf8'), '');
+  assert.doesNotMatch(baseCss, /#right-context-rail\s*>\s*#radio-panel/);
   assert.match(css, /#global-context-panel #radio-panel\.collapsed/);
   assert.doesNotMatch(css, /\.context-radio-dock\.active:hover \.context-radio-mini/);
   assert.doesNotMatch(css, /\.context-radio-dock\.active:focus-within \.context-radio-mini/);
@@ -279,7 +339,11 @@ test('panel collapse is presentation-only and Radio exposes explicit voice playb
   const method = ui.slice(start, ui.indexOf('toggleCleanView(forceEnabled)', start));
   assert.doesNotMatch(method, /stopRadio|stopPlayback|setEnabled\('radio'/);
   assert.match(voice, /'radio-panel'/);
-  assert.match(voice, /'radio'/);
+  assert.ok(
+    realtimeTools()
+      .find((tool) => tool.name === 'set_layer_visibility')
+      .parameters.properties.layerId.enum.includes('radio'),
+  );
   assert.match(voice, /name:\s*'control_radio'/);
   assert.deepEqual(realtimeTools().find(tool => tool.name === 'control_radio').parameters.properties.action.enum, ['enable', 'disable', 'play', 'resume', 'pause', 'stop', 'next', 'previous', 'volume', 'select', 'status']);
   const enableMethod = radioBindings;

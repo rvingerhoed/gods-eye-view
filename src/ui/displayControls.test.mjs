@@ -9,6 +9,19 @@ function element(value = '') {
   return el;
 }
 
+test('sonar on/off control cannot fire after disposal', () => {
+  const sonarButton = element();
+  const calls = [];
+  const control = bindDisplayControls({
+    elements: { sonarButton },
+    actions: { toggleSonar: () => calls.push('toggle') },
+  });
+  sonarButton.dispatchEvent(new Event('click'));
+  control.destroy();
+  sonarButton.dispatchEvent(new Event('click'));
+  assert.deepEqual(calls, ['toggle']);
+});
+
 test('controls read current values without preventing native input behavior', () => {
   const bloomSlider = element('24');
   const hudLayout = element('tactical');
@@ -52,6 +65,51 @@ test('destroyed and replaced controls cannot issue stale actions', () => {
   second.destroy();
   bloomButton.dispatchEvent(new Event('click'));
   assert.equal(newCalls, 1);
+});
+
+test('the Cyber sonar control is an optional owned display action', () => {
+  const sonarButton = element();
+  const sonarRingsSlider = element('9');
+  const sonarRangeSlider = element('110');
+  const sonarIntensitySlider = element('65');
+  const sonarOpacitySlider = element('84');
+  const sonarSectorSlider = element('32');
+  const calls = [];
+  const control = bindDisplayControls({
+    elements: {
+      sonarButton,
+      sonarRingsSlider,
+      sonarRangeSlider,
+      sonarIntensitySlider,
+      sonarOpacitySlider,
+      sonarSectorSlider,
+    },
+    actions: {
+      toggleSonar: () => calls.push('toggle'),
+      setSonarRings: (value) => calls.push(['rings', value]),
+      setSonarRange: (value) => calls.push(['range', value]),
+      setSonarIntensity: (value) => calls.push(['intensity', value]),
+      setSonarOpacity: (value) => calls.push(['opacity', value]),
+      setSonarSector: (value) => calls.push(['sector', value]),
+    },
+  });
+  sonarButton.dispatchEvent(new Event('click'));
+  sonarRingsSlider.dispatchEvent(new Event('input'));
+  sonarRangeSlider.dispatchEvent(new Event('input'));
+  sonarIntensitySlider.dispatchEvent(new Event('input'));
+  sonarOpacitySlider.dispatchEvent(new Event('input'));
+  sonarSectorSlider.dispatchEvent(new Event('input'));
+  assert.deepEqual(calls, [
+    'toggle',
+    ['rings', 9],
+    ['range', 110],
+    ['intensity', 65],
+    ['opacity', 84],
+    ['sector', 32],
+  ]);
+  control.destroy();
+  sonarButton.dispatchEvent(new Event('click'));
+  assert.equal(calls.length, 6);
 });
 
 test('style, allocation and model choices retain their current data attributes', () => {
@@ -99,4 +157,30 @@ test('optional controls are absent safely and subscriptions stay instance-owned'
   b.dispatchEvent(new Event('input'));
   assert.deepEqual(calls, ['b']);
   two.destroy();
+});
+
+test('the native Scope checkbox reads checked state on change and disposes its listener', () => {
+  const scopeToggle = element();
+  scopeToggle.checked = true;
+  const scopeFeatherSlider = element('200');
+  const calls = [];
+  const controls = bindDisplayControls({
+    elements: { scopeToggle, scopeFeatherSlider },
+    actions: {
+      setScopeEnabled: (value) => calls.push(['enabled', value]),
+      setScopeFeather: (value) => calls.push(['feather', value]),
+    },
+  });
+  scopeToggle.checked = false;
+  scopeToggle.dispatchEvent(new Event('change'));
+  scopeToggle.checked = true;
+  scopeToggle.dispatchEvent(new Event('change'));
+  scopeFeatherSlider.dispatchEvent(new Event('input'));
+  controls.destroy();
+  scopeToggle.dispatchEvent(new Event('change'));
+  assert.deepEqual(calls, [
+    ['enabled', false],
+    ['enabled', true],
+    ['feather', 200],
+  ]);
 });

@@ -92,26 +92,32 @@ export function railRowControls(state) {
   const chips = [
     {
       id: 'planner',
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       label: 'PLANNER',
       active: panelVisible,
       state: panelVisible ? 'active' : 'idle',
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       title: panelVisible ? 'Reisplanner verbergen' : 'Reisplanner openen',
       params: { panel: !panelVisible },
       disabled: loadState === 'error',
     },
     {
       id: 'fly',
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       label: 'FLY',
       disabled: selected < 0 || planning,
       state: 'idle',
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       title: 'Camera naar de gekozen reis',
       params: { fly: true },
     },
     {
       id: 'clear',
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       label: 'WISSEN',
       disabled: options.length === 0,
       state: 'idle',
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       title: 'Reisopties van de kaart halen',
       params: { clear: true },
     },
@@ -120,6 +126,7 @@ export function railRowControls(state) {
     chips,
     legend: [],
     list: {
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       ariaLabel: 'Reisopties',
       items: options.map((option, index) => ({
         id: `opt-${index}`,
@@ -149,6 +156,7 @@ export function railStats(state) {
     return {
       count: 0,
       loading: true,
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       loadingLabel: 'Spoorkaart en stations laden…',
       source: SOURCE,
       error: null,
@@ -166,6 +174,7 @@ export function railStats(state) {
       count: stationCount,
       countLabel: `${stationCount} stations`,
       loading: true,
+      // i18n-ignore: Dutch-only fork layer (Spoor NL); no other locale applies
       loadingLabel: 'Reisadvies ophalen…',
       source: SOURCE,
       error: null,
