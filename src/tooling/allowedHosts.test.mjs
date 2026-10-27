@@ -89,8 +89,27 @@ test('the Host check is installed first on the dev and preview servers', () => {
       middleware({ headers: { host } }, res, () => (passed = true));
       return passed ? 'next' : res.status;
     };
+    // HTTP/2 (the HTTPS dev server) carries the host as :authority, not Host.
+    const respondH2 = (authority) => {
+      const res = {
+        status: null,
+        writeHead(status) {
+          this.status = status;
+        },
+        end() {},
+      };
+      let passed = false;
+      middleware(
+        { headers: { ':authority': authority } },
+        res,
+        () => (passed = true),
+      );
+      return passed ? 'next' : res.status;
+    };
     assert.equal(respond('localhost:4173'), 'next', hook);
     assert.equal(respond('evil.example:4173'), 403, hook);
+    assert.equal(respondH2('localhost:4174'), 'next', hook);
+    assert.equal(respondH2('evil.example:4174'), 403, hook);
   }
 });
 

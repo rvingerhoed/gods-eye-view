@@ -76,7 +76,9 @@ export function hostCheckPlugin() {
       (value) => typeof value === 'string' && value,
     );
     return (req, res, next) => {
-      if (isAllowedHost(req.headers.host, allowed, additional)) return next();
+      // Over HTTPS Vite speaks HTTP/2, where the Host travels as :authority.
+      const host = req.headers.host ?? req.headers[':authority'];
+      if (isAllowedHost(host, allowed, additional)) return next();
       res.writeHead(403, { 'Content-Type': 'text/plain' });
       res.end('Blocked request. This host is not allowed.');
     };
