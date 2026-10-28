@@ -1780,6 +1780,8 @@ test('one row steps every registered observation; missing frames hide and latest
       }),
     },
   });
+  // Fork default is the global mosaic; this test pins the regional product.
+  satellite.layer.setParams({ product: 'clouds-regional' });
   t.after(() => {
     radar.layer.destroy();
     satellite.layer.destroy();

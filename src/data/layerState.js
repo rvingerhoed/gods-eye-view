@@ -323,12 +323,15 @@ const OPTION_GROUPS = Object.freeze({
       light: 'l',
       strong: 's',
     }),
+    // Fork: global mosaic by default (NL is outside GOES coverage); absent
+    // tokens keep their historical regional meaning for existing links.
     enumOption(
       'product',
       'p',
-      'clouds-regional',
+      'clouds',
       ['clouds', 'clouds-regional'],
       { clouds: 'g', 'clouds-regional': 'r' },
+      { absentValue: 'clouds-regional' },
     ),
   ]),
   wind: Object.freeze([

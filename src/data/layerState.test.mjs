@@ -650,6 +650,7 @@ test('compact URL omits absent-meaning option state and still resolves to it', (
     selectedSatTrackingId: null,
   };
   state.options.wind.overlay = 'speed'; // Frozen v2 omitted-token meaning; new boots use trails.
+  state.options['weather-satellite'].product = 'clouds-regional'; // Frozen omitted-token meaning; fork boots use the global mosaic.
   const params = encodeLayerStateParams(new URLSearchParams('v=2'), state);
   assert.equal(params.has('lo'), false);
   const roundTrip = decodeLayerStateParams(params);
@@ -2985,7 +2986,10 @@ test('Clear All cancels a saved restore still waiting to start', async () => {
   gate.resolve();
   const results = await restore;
   for (const id of ['earthquakes', 'flights']) {
-    assert.equal(results.find((result) => result.layerId === id).succeeded, false);
+    assert.equal(
+      results.find((result) => result.layerId === id).succeeded,
+      false,
+    );
   }
   assert.deepEqual([...manager.getEnabledLayerIds()], []);
   assert.equal(enabledLayerParam(sink), '');

@@ -67,7 +67,7 @@ export function createWeatherLayer({
   const radar = id === 'weather-radar';
   const lightning = id === 'weather-lightning';
   const satellite = !radar && !lightning;
-  let product = radar ? 'radar' : lightning ? 'lightning' : 'clouds-regional';
+  let product = radar ? 'radar' : lightning ? 'lightning' : 'clouds';
   let opacity = 'strong';
   let infrared = 100;
   let viewer = null,
